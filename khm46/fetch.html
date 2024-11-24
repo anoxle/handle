@@ -40,6 +40,11 @@
         // Function to decode base64 and parse JSON
         function decodeAndParse(encodedData) {
             try {
+                // Replace invalid characters and ensure proper padding
+                encodedData = encodedData.replace(/-/g, '+').replace(/_/g, '/');
+                while (encodedData.length % 4) {
+                    encodedData += '=';
+                }
                 const decodedData = atob(encodedData);
                 return JSON.parse(decodedData);
             } catch (error) {
