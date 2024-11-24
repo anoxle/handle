@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Source Finder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .image-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .image-box img {
+            max-width: 100%;
+            height: auto;
+        }
+        .image-box h2 {
+            margin-top: 0;
+        }
+        .image-box p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Source Finder</h1>
+        <div id="image-container"></div>
+    </div>
+
+    <script>
+        // Function to decode base64 and parse JSON
+        function decodeAndParse(encodedData) {
+            try {
+                const decodedData = atob(encodedData);
+                return JSON.parse(decodedData);
+            } catch (error) {
+                console.error("Error decoding or parsing data:", error);
+                return null;
+            }
+        }
+
+        // Function to create and append image boxes
+        function createImageBoxes(imageDataDict) {
+            const container = document.getElementById('image-container');
+            for (const key in imageDataDict) {
+                const data = imageDataDict[key];
+                const box = document.createElement('div');
+                box.className = 'image-box';
+
+                const title = document.createElement('h2');
+                title.textContent = data.title;
+                box.appendChild(title);
+
+                const image = document.createElement('img');
+                image.src = data.originalimage;
+                box.appendChild(image);
+
+                const author = document.createElement('p');
+                author.textContent = `Author: ${data.author}`;
+                box.appendChild(author);
+
+                const similarity = document.createElement('p');
+                similarity.textContent = `Similarity: ${data.similarity}%`;
+                box.appendChild(similarity);
+
+                if (data.authorprofile) {
+                    const authorProfile = document.createElement('p');
+                    const authorLink = document.createElement('a');
+                    authorLink.href = data.authorprofile;
+                    authorLink.textContent = 'Author Profile';
+                    authorProfile.appendChild(authorLink);
+                    box.appendChild(authorProfile);
+                }
+
+                if (data.sourceurl) {
+                    const sourceUrl = document.createElement('p');
+                    const sourceLink = document.createElement('a');
+                    sourceLink.href = data.sourceurl;
+                    sourceLink.textContent = 'Source URL';
+                    sourceUrl.appendChild(sourceLink);
+                    box.appendChild(sourceUrl);
+                }
+
+                container.appendChild(box);
+            }
+        }
+
+        // Get the encoded data from the URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const encodedData = urlParams.get('c');
+
+        if (encodedData) {
+            const imageDataDict = decodeAndParse(encodedData);
+            if (imageDataDict) {
+                createImageBoxes(imageDataDict);
+            } else {
+                document.getElementById('image-container').innerHTML = '<p>Error decoding data.</p>';
+            }
+        } else {
+            document.getElementById('image-container').innerHTML = '<p>No data found.</p>';
+        }
+    </script>
+</body>
+</html>
