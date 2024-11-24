@@ -1,330 +1,322 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Image Source Finder</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-  <style>
-      :root {
-          --bg-color: #131314;
-          --text-color: #e0e0e0;
-          --accent-color: #4a4a4a;
-          --highlight-color: #2c2c2c;
-      }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Source Finder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #131314;
+            --text-color: #ffffff;
+            --accent-color: #3b82f6;
+            --card-bg: #1c1c1e;
+            --hover-color: #2563eb;
+        }
 
-      * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          transition: all 0.3s ease;
-      }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-      body {
-          font-family: 'Inter', sans-serif;
-          background-color: var(--bg-color);
-          color: var(--text-color);
-          line-height: 1.6;
-          overflow-x: hidden;
-      }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
 
-      .container {
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 20px;
-      }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
 
-      h1 {
-          text-align: center;
-          margin-bottom: 30px;
-          font-weight: 600;
-          color: var(--text-color);
-          animation: fadeIn 1s ease-out;
-          letter-spacing: -1px;
-      }
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--text-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInDown 1s ease-out;
+        }
 
-      #loading-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: var(--bg-color);
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-          opacity: 1;
-          transition: opacity 0.5s ease-out;
-      }
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            backdrop-filter: blur(8px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-      #loading-overlay.hidden {
-          opacity: 0;
-          pointer-events: none;
-      }
+        #loading-overlay.hidden {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
 
-      .loading-bar {
-          width: 300px;
-          height: 4px;
-          background-color: var(--accent-color);
-          position: relative;
-          overflow: hidden;
-          border-radius: 2px;
-      }
+        .loading-bar {
+            width: 200px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+        }
 
-      .loading-bar::after {
-          content: '';
-          position: absolute;
-          left: -50%;
-          top: 0;
-          width: 50%;
-          height: 100%;
-          background-color: var(--text-color);
-          animation: loadingAnimation 1.5s infinite;
-      }
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 30%;
+            background: var(--accent-color);
+            animation: loading 1s infinite ease-in-out;
+        }
 
-      .image-box {
-          background-color: var(--highlight-color);
-          border-radius: 15px;
-          overflow: hidden;
-          margin-bottom: 20px;
-          box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-          animation: slideUp 0.5s ease-out;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 15px;
-          text-align: center;
-      }
+        #image-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 1rem;
+        }
 
-      .image-wrapper {
-          width: 80%;
-          margin-bottom: 15px;
-          position: relative;
-          cursor: pointer;
-      }
+        .image-box {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            overflow: hidden;
+            transform: translateY(0);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-      .image-box img {
-          width: 100%;
-          height: auto;
-          object-fit: cover;
-          border-radius: 10px;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-      }
+        .image-box:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: var(--accent-color);
+        }
 
-      .image-box img:hover {
-          transform: scale(1.05);
-          box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      }
+        .image-wrapper {
+            position: relative;
+            padding-top: 75%;
+            overflow: hidden;
+        }
 
-      .image-box h2 {
-          margin-bottom: 10px;
-          color: var(--text-color);
-          font-weight: 600;
-          font-size: 1.2em;
-      }
+        .image-wrapper img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-      .btn-container {
-          display: flex;
-          justify-content: center;
-          gap: 10px;
-          width: 100%;
-          margin-top: 10px;
-      }
+        .image-wrapper:hover img {
+            transform: scale(1.1);
+        }
 
-      .btn {
-          display: inline-block;
-          background-color: var(--accent-color);
-          color: var(--text-color);
-          text-decoration: none;
-          padding: 10px 15px;
-          border-radius: 25px;
-          font-size: 0.9em;
-          text-align: center;
-          flex-grow: 1;
-          max-width: 200px;
-          transition: all 0.3s ease;
-      }
+        .image-content {
+            padding: 1.5rem;
+        }
 
-      .btn:hover {
-          background-color: var(--text-color);
-          color: var(--bg-color);
-          transform: translateY(-3px);
-          box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      }
+        .image-box h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
 
-      #image-modal {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0,0,0,0.8);
-          z-index: 1000;
-          justify-content: center;
-          align-items: center;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-      }
+        .image-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
 
-      #image-modal.show {
-          display: flex;
-          opacity: 1;
-      }
+        .btn-container {
+            display: flex;
+            gap: 1rem;
+        }
 
-      #modal-image {
-          max-width: 90%;
-          max-height: 90%;
-          border-radius: 15px;
-          transform: scale(0.7);
-          transition: transform 0.3s ease;
-      }
+        .btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
 
-      #image-modal.show #modal-image {
-          transform: scale(1);
-      }
+        .btn:hover {
+            background: var(--hover-color);
+            transform: translateY(-2px);
+        }
 
-      #open-browser-btn {
-          margin-top: 15px;
-          display: none;
-      }
+        #image-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            backdrop-filter: blur(8px);
+            transition: opacity 0.3s ease;
+        }
 
-      @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-      }
-      @keyframes slideUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-      }
-      @keyframes loadingAnimation {
-          0% { left: -50%; }
-          50% { left: 100%; }
-          100% { left: -50%; }
-      }
-  </style>
+        #image-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        #modal-image {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 1rem;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #image-modal.show #modal-image {
+            transform: scale(1);
+        }
+
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(400%); }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            #image-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="loading-overlay">
-      <div class="loading-bar"></div>
-      <p style="margin-top: 15px;">Loading content...</p>
-  </div>
+    <div id="loading-overlay">
+        <div class="loading-bar"></div>
+        <p style="margin-top: 1rem; font-size: 0.9rem;">Loading content...</p>
+    </div>
 
-  <div id="image-modal">
-      <img id="modal-image" src="" alt="Enlarged Image">
-      <a href="#" id="open-browser-btn" class="btn" target="_blank">Open in Browser</a>
-  </div>
+    <div id="image-modal">
+        <img id="modal-image" alt="Enlarged Image">
+    </div>
 
-  <div class="container">
-      <h1>Image Source Finder</h1>
-      <div id="image-container"></div>
-  </div>
+    <div class="container">
+        <h1>Image Source Finder</h1>
+        <div id="image-container"></div>
+    </div>
 
-  <script>
-      window.addEventListener('load', () => {
-          const loadingOverlay = document.getElementById('loading-overlay');
-          setTimeout(() => {
-              loadingOverlay.classList.add('hidden');
-          }, 1500);
-      });
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }, 1000);
+        });
 
-      function setupImageModal() {
-          const imageModal = document.getElementById('image-modal');
-          const modalImage = document.getElementById('modal-image');
-          const openBrowserBtn = document.getElementById('open-browser-btn');
+        function setupImageModal() {
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('modal-image');
 
-          document.querySelectorAll('.image-wrapper img').forEach(img => {
-              img.addEventListener('click', () => {
-                  modalImage.src = img.src;
-                  imageModal.classList.add('show');
-                  const sourceLink = img.closest('.image-box').querySelector('.source-link');
-                  openBrowserBtn.href = sourceLink ? sourceLink.href : '#';
-                  openBrowserBtn.style.display = sourceLink ? 'block' : 'none';
-              });
-          });
+            document.querySelectorAll('.image-wrapper').forEach(wrapper => {
+                wrapper.addEventListener('click', (e) => {
+                    const img = wrapper.querySelector('img');
+                    modalImg.src = img.src;
+                    modal.classList.add('show');
+                });
+            });
 
-          imageModal.addEventListener('click', (e) => {
-              if (e.target === imageModal) {
-                  imageModal.classList.remove('show');
-              }
-          });
-      }
+            modal.addEventListener('click', () => modal.classList.remove('show'));
+        }
 
-      function decodeAndParse(encodedData) {
-          try {
-              encodedData = encodedData.replace(/-/g, '+').replace(/_/g, '/');
-              while (encodedData.length % 4) {
-                  encodedData += '=';
-              }
-              return JSON.parse(atob(encodedData));
-          } catch (error) {
-              return null;
-          }
-      }
+        function decodeAndParse(encodedData) {
+            try {
+                encodedData = encodedData.replace(/-/g, '+').replace(/_/g, '/');
+                while (encodedData.length % 4) encodedData += '=';
+                return JSON.parse(atob(encodedData));
+            } catch (error) {
+                return null;
+            }
+        }
 
-      function createImageBoxes(imageDataDict) {
-          const container = document.getElementById('image-container');
-          for (const key in imageDataDict) {
-              const data = imageDataDict[key];
-              const box = document.createElement('div');
-              box.className = 'image-box';
+        function createImageBoxes(imageDataDict) {
+            const container = document.getElementById('image-container');
+            Object.entries(imageDataDict).forEach(([_, data]) => {
+                container.innerHTML += `
+                    <div class="image-box animate__animated animate__fadeIn">
+                        <div class="image-wrapper">
+                            <img src="${data.originalimage}" alt="${data.title}">
+                        </div>
+                        <div class="image-content">
+                            <h2>${data.title}</h2>
+                            <div class="image-info">
+                                <span>Author: ${data.author}</span>
+                                <span>Similarity: ${data.similarity}%</span>
+                            </div>
+                            <div class="btn-container">
+                                ${data.authorprofile ? `<a href="${data.authorprofile}" class="btn" target="_blank">Author Profile</a>` : ''}
+                                ${data.sourceurl ? `<a href="${data.sourceurl}" class="btn" target="_blank">Source URL</a>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            setupImageModal();
+        }
 
-              const wrapper = document.createElement('div');
-              wrapper.className = 'image-wrapper';
+        const urlParams = new URLSearchParams(window.location.search);
+        const encodedData = urlParams.get('c');
 
-              const img = document.createElement('img');
-              img.src = data.originalimage;
-              wrapper.appendChild(img);
-              box.appendChild(wrapper);
-
-              const title = document.createElement('h2');
-              title.textContent = data.title;
-              box.appendChild(title);
-
-              const author = document.createElement('p');
-              author.innerHTML = `<strong>Author:</strong> ${data.author}`;
-              box.appendChild(author);
-
-              const similarity = document.createElement('p');
-              similarity.innerHTML = `<strong>Similarity:</strong> ${data.similarity}%`;
-              box.appendChild(similarity);
-
-              const btnContainer = document.createElement('div');
-              btnContainer.className = 'btn-container';
-
-              if (data.authorprofile) {
-                  const authorBtn = document.createElement('a');
-                  authorBtn.href = data.authorprofile;
-                  authorBtn.textContent = 'Author Profile';
-                  authorBtn.className = 'btn';
-                  btnContainer.appendChild(authorBtn);
-              }
-
-              if (data.sourceurl) {
-                  const sourceBtn = document.createElement('a');
-                  sourceBtn.href = data.sourceurl;
-                  sourceBtn.textContent = 'Source URL';
-                  sourceBtn.className = 'btn source-link';
-                  btnContainer.appendChild(sourceBtn);
-              }
-
-              box.appendChild(btnContainer);
-              container.appendChild(box);
-          }
-          setupImageModal();
-      }
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const encodedData = urlParams.get('c');
-
-      if (encodedData) {
-          const imageDataDict = decodeAndParse(encodedData);
-          imageDataDict ? createImageBoxes(imageDataDict) : document.getElementById('image-container').innerHTML = '<p>Error decoding data.</p>';
-      } else {
-          document.getElementById('image-container').innerHTML = '<p>No data found.</p>';
-      }
-  </script>
+        if (encodedData) {
+            const imageDataDict = decodeAndParse(encodedData);
+            if (imageDataDict) {
+                createImageBoxes(imageDataDict);
+            } else {
+                document.getElementById('image-container').innerHTML = '<p>Error decoding data.</p>';
+            }
+        } else {
+            document.getElementById('image-container').innerHTML = '<p>No data found.</p>';
+        }
+    </script>
 </body>
 </html>
