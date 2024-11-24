@@ -13,6 +13,8 @@
             --accent-color: #3b82f6;
             --card-bg: #1c1c1e;
             --hover-color: #2563eb;
+            --disabled-color: #2a2a2c;
+            --disabled-text: #666668;
         }
 
         * {
@@ -27,23 +29,66 @@
             color: var(--text-color);
             line-height: 1.6;
             min-height: 100vh;
+            position: relative;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
+            padding-bottom: 4rem;
         }
 
         h1 {
             font-size: 2.5rem;
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
             font-weight: 600;
             background: linear-gradient(45deg, var(--text-color), var(--accent-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: fadeInDown 1s ease-out;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            background: var(--card-bg);
+            border: 1px solid var(--accent-color);
+            padding: 1rem 3rem 1rem 1.5rem;
+            border-radius: 0.5rem;
+            z-index: 2000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .notification-close {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
         }
 
         #loading-overlay {
@@ -170,6 +215,17 @@
             transform: translateY(-2px);
         }
 
+        .btn.disabled {
+            background: var(--disabled-color);
+            color: var(--disabled-text);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .btn.disabled:hover {
+            transform: none;
+        }
+
         #image-modal {
             position: fixed;
             inset: 0;
@@ -199,6 +255,19 @@
 
         #image-modal.show #modal-image {
             transform: scale(1);
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            text-align: center;
+            background: var(--card-bg);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: var(--disabled-text);
         }
 
         @keyframes loading {
@@ -233,9 +302,14 @@
     </style>
 </head>
 <body>
+    <div id="notification" class="notification">
+        <span>No Source URLs Found!</span>
+        <button class="notification-close">×</button>
+    </div>
+
     <div id="loading-overlay">
         <div class="loading-bar"></div>
-        <p style="margin-top: 1rem; font-size: 0.9rem;">Loading content...</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem;">Fetching Content ...</p>
     </div>
 
     <div id="image-modal">
@@ -247,12 +321,28 @@
         <div id="image-container"></div>
     </div>
 
+    <footer class="footer">
+        Powered by Anoxle
+    </footer>
+
     <script>
         window.addEventListener('load', () => {
             setTimeout(() => {
                 document.getElementById('loading-overlay').classList.add('hidden');
             }, 1000);
         });
+
+        const notification = document.getElementById('notification');
+        document.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove('show');
+        });
+
+        function showNotification() {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
 
         function setupImageModal() {
             const modal = document.getElementById('image-modal');
@@ -282,6 +372,7 @@
         function createImageBoxes(imageDataDict) {
             const container = document.getElementById('image-container');
             Object.entries(imageDataDict).forEach(([_, data]) => {
+                const sourceUrl = data.sourceurl === "No URL Found" ? null : data.sourceurl;
                 container.innerHTML += `
                     <div class="image-box animate__animated animate__fadeIn">
                         <div class="image-wrapper">
@@ -295,7 +386,9 @@
                             </div>
                             <div class="btn-container">
                                 ${data.authorprofile ? `<a href="${data.authorprofile}" class="btn" target="_blank">Author Profile</a>` : ''}
-                                ${data.sourceurl ? `<a href="${data.sourceurl}" class="btn" target="_blank">Source URL</a>` : ''}
+                                <a href="${sourceUrl || '#'}" class="btn ${!sourceUrl ? 'disabled' : ''}" target="_blank" 
+                                   onclick="${!sourceUrl ? 'event.preventDefault(); showNotification();' : ''}"
+                                >Source URL</a>
                             </div>
                         </div>
                     </div>
