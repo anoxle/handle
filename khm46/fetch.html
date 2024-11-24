@@ -25,6 +25,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
+            overflow-x: hidden;
         }
 
         .container {
@@ -39,6 +40,7 @@
             font-weight: 600;
             color: var(--text-color);
             animation: fadeIn 1s ease-out;
+            letter-spacing: -1px;
         }
 
         #loading-overlay {
@@ -53,6 +55,13 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .loading-bar {
@@ -61,6 +70,7 @@
             background-color: var(--accent-color);
             position: relative;
             overflow: hidden;
+            border-radius: 2px;
         }
 
         .loading-bar::after {
@@ -76,32 +86,51 @@
 
         .image-box {
             background-color: var(--highlight-color);
-            border-radius: 10px;
+            border-radius: 15px;
             overflow: hidden;
             margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             animation: slideUp 0.5s ease-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .image-wrapper {
+            width: 80%;
+            margin-bottom: 15px;
+            position: relative;
+            cursor: pointer;
         }
 
         .image-box img {
             width: 100%;
             height: auto;
             object-fit: cover;
-            transition: transform 0.3s ease;
+            border-radius: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .image-box img:hover {
-            transform: scale(1.05);
-        }
-
-        .image-box-content {
-            padding: 15px;
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
         .image-box h2 {
             margin-bottom: 10px;
             color: var(--text-color);
             font-weight: 600;
+            font-size: 1.2em;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
         }
 
         .btn {
@@ -109,30 +138,66 @@
             background-color: var(--accent-color);
             color: var(--text-color);
             text-decoration: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            margin-top: 10px;
+            padding: 10px 15px;
+            border-radius: 25px;
             font-size: 0.9em;
+            text-align: center;
+            flex-grow: 1;
+            max-width: 200px;
+            transition: all 0.3s ease;
         }
 
         .btn:hover {
             background-color: var(--text-color);
             color: var(--bg-color);
+            transform: translateY(-3px);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+        #image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        #image-modal.show {
+            display: flex;
+            opacity: 1;
         }
 
-        @keyframes loadingAnimation {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
+        #modal-image {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 15px;
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+
+        #image-modal.show #modal-image {
+            transform: scale(1);
+        }
+
+        #open-browser-btn {
+            margin-top: 15px;
+            display: none;
+        }
+
+        @keyframes fadeIn { /* ... existing animation ... */ }
+        @keyframes slideUp { /* ... existing animation ... */ }
+        @keyframes loadingAnimation { /* ... existing animation ... */ }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
@@ -142,18 +207,53 @@
         <p style="margin-top: 15px;">Loading content...</p>
     </div>
 
+    <div id="image-modal">
+        <img id="modal-image" src="" alt="Enlarged Image">
+        <a href="#" id="open-browser-btn" class="btn" target="_blank">Open in Browser</a>
+    </div>
+
     <div class="container">
         <h1>Image Source Finder</h1>
         <div id="image-container"></div>
     </div>
 
     <script>
-        // Add loading screen
+        // Loading overlay
         window.addEventListener('load', () => {
+            const loadingOverlay = document.getElementById('loading-overlay');
             setTimeout(() => {
-                document.getElementById('loading-overlay').style.display = 'none';
+                loadingOverlay.classList.add('hidden');
             }, 1500);
         });
+
+        // Image modal functionality
+        function setupImageModal() {
+            const imageModal = document.getElementById('image-modal');
+            const modalImage = document.getElementById('modal-image');
+            const openBrowserBtn = document.getElementById('open-browser-btn');
+
+            document.querySelectorAll('.image-wrapper img').forEach(img => {
+                img.addEventListener('click', () => {
+                    modalImage.src = img.src;
+                    imageModal.classList.add('show');
+                    
+                    // Set open browser button
+                    const sourceLink = img.closest('.image-box').querySelector('.source-link');
+                    if (sourceLink) {
+                        openBrowserBtn.href = sourceLink.href;
+                        openBrowserBtn.style.display = 'block';
+                    } else {
+                        openBrowserBtn.style.display = 'none';
+                    }
+                });
+            });
+
+            imageModal.addEventListener('click', (e) => {
+                if (e.target === imageModal) {
+                    imageModal.classList .remove('show');
+                }
+            });
+        }
 
         function decodeAndParse(encodedData) {
             try {
@@ -176,44 +276,49 @@
                 const box = document.createElement('div');
                 box.className = 'image-box';
 
+                const wrapper = document.createElement('div');
+                wrapper.className = 'image-wrapper';
+
                 const img = document.createElement('img');
                 img.src = data.originalimage;
-                box.appendChild(img);
-
-                const content = document.createElement('div');
-                content.className = 'image-box-content';
+                wrapper.appendChild(img);
+                box.appendChild(wrapper);
 
                 const title = document.createElement('h2');
                 title.textContent = data.title;
-                content.appendChild(title);
+                box.appendChild(title);
 
                 const author = document.createElement('p');
                 author.innerHTML = `<strong>Author:</strong> ${data.author}`;
-                content.appendChild(author);
+                box.appendChild(author);
 
                 const similarity = document.createElement('p');
                 similarity.innerHTML = `<strong>Similarity:</strong> ${data.similarity}%`;
-                content.appendChild(similarity);
+                box.appendChild(similarity);
+
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'btn-container';
 
                 if (data.authorprofile) {
                     const authorBtn = document.createElement('a');
                     authorBtn.href = data.authorprofile;
                     authorBtn.textContent = 'Author Profile';
                     authorBtn.className = 'btn';
-                    content.appendChild(authorBtn);
+                    btnContainer.appendChild(authorBtn);
                 }
 
                 if (data.sourceurl) {
                     const sourceBtn = document.createElement('a');
                     sourceBtn.href = data.sourceurl;
                     sourceBtn.textContent = 'Source URL';
-                    sourceBtn.className = 'btn';
-                    content.appendChild(sourceBtn);
+                    sourceBtn.className = 'btn source-link'; // Added class for reference
+                    btnContainer.appendChild(sourceBtn);
                 }
 
-                box.appendChild(content);
+                box.appendChild(btnContainer);
                 container.appendChild(box);
             }
+            setupImageModal(); // Setup modal after creating image boxes
         }
 
         const urlParams = new URLSearchParams(window.location.search);
