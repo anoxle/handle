@@ -1,339 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Source Finder</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #131314;
-            --text-color: #e0e0e0;
-            --accent-color: #4a4a4a;
-            --highlight-color: #2c2c2c;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Source Finder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+      :root {
+          --bg-color: #131314;
+          --text-color: #e0e0e0;
+          --accent-color: #4a4a4a;
+          --highlight-color: #2c2c2c;
+      }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-        }
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          transition: all 0.3s ease;
+      }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
+      body {
+          font-family: 'Inter', sans-serif;
+          background-color: var(--bg-color);
+          color: var(--text-color);
+          line-height: 1.6;
+          overflow-x: hidden;
+      }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+      .container {
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 20px;
+      }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-weight: 600;
-            color: var(--text-color);
-            animation: fadeIn 1s ease-out;
-            letter-spacing: -1px;
-        }
+      h1 {
+          text-align: center;
+          margin-bottom: 30px;
+          font-weight: 600;
+          color: var(--text-color);
+          animation: fadeIn 1s ease-out;
+          letter-spacing: -1px;
+      }
 
-        #loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 1;
-            transition: opacity 0.5s ease-out;
-        }
+      #loading-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: var(--bg-color);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+          opacity: 1;
+          transition: opacity 0.5s ease-out;
+      }
 
-        #loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+      #loading-overlay.hidden {
+          opacity: 0;
+          pointer-events: none;
+      }
 
-        .loading-bar {
-            width: 300px;
-            height: 4px;
-            background-color: var(--accent-color);
-            position: relative;
-            overflow: hidden;
-            border-radius: 2px;
-        }
+      .loading-bar {
+          width: 300px;
+          height: 4px;
+          background-color: var(--accent-color);
+          position: relative;
+          overflow: hidden;
+          border-radius: 2px;
+      }
 
-        .loading-bar::after {
-            content: '';
-            position: absolute;
-            left: -50%;
-            top: 0;
-            width: 50%;
-            height: 100%;
-            background-color: var(--text-color);
-            animation: loadingAnimation 1.5s infinite;
-        }
+      .loading-bar::after {
+          content: '';
+          position: absolute;
+          left: -50%;
+          top: 0;
+          width: 50%;
+          height: 100%;
+          background-color: var(--text-color);
+          animation: loadingAnimation 1.5s infinite;
+      }
 
-        .image-box {
-            background-color: var(--highlight-color);
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            animation: slideUp 0.5s ease-out;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 15px;
-            text-align: center;
-        }
+      .image-box {
+          background-color: var(--highlight-color);
+          border-radius: 15px;
+          overflow: hidden;
+          margin-bottom: 20px;
+          box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+          animation: slideUp 0.5s ease-out;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 15px;
+          text-align: center;
+      }
 
-        .image-wrapper {
-            width: 80%;
-            margin-bottom: 15px;
-            position: relative;
-            cursor: pointer;
-        }
+      .image-wrapper {
+          width: 80%;
+          margin-bottom: 15px;
+          position: relative;
+          cursor: pointer;
+      }
 
-        .image-box img {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
-            border-radius: 10px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+      .image-box img {
+          width: 100%;
+          height: auto;
+          object-fit: cover;
+          border-radius: 10px;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
 
-        .image-box img:hover {
-            transform: scale(1.02);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
+      .image-box img:hover {
+          transform: scale(1.05);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      }
 
-        .image-box h2 {
-            margin-bottom: 10px;
-            color: var(--text-color);
-            font-weight: 600;
-            font-size: 1.2em;
-        }
+      .image-box h2 {
+          margin-bottom: 10px;
+          color: var(--text-color);
+          font-weight: 600;
+          font-size: 1.2em;
+      }
 
-        .btn-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            margin-top: 10px;
-        }
+      .btn-container {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          width: 100%;
+          margin-top: 10px;
+      }
 
-        .btn {
-            display: inline-block;
-            background-color: var(--accent-color);
-            color: var(--text-color);
-            text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 25px;
-            font-size: 0.9em;
-            text-align: center;
-            flex-grow: 1;
-            max-width: 200px;
-            transition: all 0.3s ease;
-        }
+      .btn {
+          display: inline-block;
+          background-color: var(--accent-color);
+          color: var(--text-color);
+          text-decoration: none;
+          padding: 10px 15px;
+          border-radius: 25px;
+          font-size: 0.9em;
+          text-align: center;
+          flex-grow: 1;
+          max-width: 200px;
+          transition: all 0.3s ease;
+      }
 
-        .btn:hover {
-            background-color: var(--text-color);
-            color: var(--bg-color);
-            transform: translateY(-3px);
-        }
+      .btn:hover {
+          background-color: var(--text-color);
+          color: var(--bg-color);
+          transform: translateY(-3px);
+          box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      }
 
-        #image-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
+      #image-modal {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0,0,0,0.8);
+          z-index: 1000;
+          justify-content: center;
+          align-items: center;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+      }
 
-        #image-modal.show {
-            display: flex;
-            opacity: 1;
-        }
+      #image-modal.show {
+          display: flex;
+          opacity: 1;
+      }
 
-        #modal-image {
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 15px;
-            transform: scale(0.7);
-            transition: transform 0.3s ease;
-        }
+      #modal-image {
+          max-width: 90%;
+          max-height: 90%;
+          border-radius: 15px;
+          transform: scale(0.7);
+          transition: transform 0.3s ease;
+      }
 
-        #image-modal.show #modal-image {
-            transform: scale(1);
-        }
+      #image-modal.show #modal-image {
+          transform: scale(1);
+      }
 
-        #open-browser-btn {
-            margin-top: 15px;
-            display: none;
-        }
+      #open-browser-btn {
+          margin-top: 15px;
+          display: none;
+      }
 
-        @keyframes fadeIn { /* ... existing animation ... */ }
-        @keyframes slideUp { /* ... existing animation ... */ }
-        @keyframes loadingAnimation { /* ... existing animation ... */ }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-    </style>
+      @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+      }
+      @keyframes slideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+      }
+      @keyframes loadingAnimation {
+          0% { left: -50%; }
+          50% { left: 100%; }
+          100% { left: -50%; }
+      }
+  </style>
 </head>
 <body>
-    <div id="loading-overlay">
-        <div class="loading-bar"></div>
-        <p style="margin-top: 15px;">Loading content...</p>
-    </div>
+  <div id="loading-overlay">
+      <div class="loading-bar"></div>
+      <p style="margin-top: 15px;">Loading content...</p>
+  </div>
 
-    <div id="image-modal">
-        <img id="modal-image" src="" alt="Enlarged Image">
-        <a href="#" id="open-browser-btn" class="btn" target="_blank">Open in Browser</a>
-    </div>
+  <div id="image-modal">
+      <img id="modal-image" src="" alt="Enlarged Image">
+      <a href="#" id="open-browser-btn" class="btn" target="_blank">Open in Browser</a>
+  </div>
 
-    <div class="container">
-        <h1>Image Source Finder</h1>
-        <div id="image-container"></div>
-    </div>
+  <div class="container">
+      <h1>Image Source Finder</h1>
+      <div id="image-container"></div>
+  </div>
 
-    <script>
-        // Loading overlay
-        window.addEventListener('load', () => {
-            const loadingOverlay = document.getElementById('loading-overlay');
-            setTimeout(() => {
-                loadingOverlay.classList.add('hidden');
-            }, 1500);
-        });
+  <script>
+      window.addEventListener('load', () => {
+          const loadingOverlay = document.getElementById('loading-overlay');
+          setTimeout(() => {
+              loadingOverlay.classList.add('hidden');
+          }, 1500);
+      });
 
-        // Image modal functionality
-        function setupImageModal() {
-            const imageModal = document.getElementById('image-modal');
-            const modalImage = document.getElementById('modal-image');
-            const openBrowserBtn = document.getElementById('open-browser-btn');
+      function setupImageModal() {
+          const imageModal = document.getElementById('image-modal');
+          const modalImage = document.getElementById('modal-image');
+          const openBrowserBtn = document.getElementById('open-browser-btn');
 
-            document.querySelectorAll('.image-wrapper img').forEach(img => {
-                img.addEventListener('click', () => {
-                    modalImage.src = img.src;
-                    imageModal.classList.add('show');
-                    
-                    // Set open browser button
-                    const sourceLink = img.closest('.image-box').querySelector('.source-link');
-                    if (sourceLink) {
-                        openBrowserBtn.href = sourceLink.href;
-                        openBrowserBtn.style.display = 'block';
-                    } else {
-                        openBrowserBtn.style.display = 'none';
-                    }
-                });
-            });
+          document.querySelectorAll('.image-wrapper img').forEach(img => {
+              img.addEventListener('click', () => {
+                  modalImage.src = img.src;
+                  imageModal.classList.add('show');
+                  const sourceLink = img.closest('.image-box').querySelector('.source-link');
+                  openBrowserBtn.href = sourceLink ? sourceLink.href : '#';
+                  openBrowserBtn.style.display = sourceLink ? 'block' : 'none';
+              });
+          });
 
-            imageModal.addEventListener('click', (e) => {
-                if (e.target === imageModal) {
-                    imageModal.classList .remove('show');
-                }
-            });
-        }
+          imageModal.addEventListener('click', (e) => {
+              if (e.target === imageModal) {
+                  imageModal.classList.remove('show');
+              }
+          });
+      }
 
-        function decodeAndParse(encodedData) {
-            try {
-                encodedData = encodedData.replace(/-/g, '+').replace(/_/g, '/');
-                while (encodedData.length % 4) {
-                    encodedData += '=';
-                }
-                const decodedData = atob(encodedData);
-                return JSON.parse(decodedData);
-            } catch (error) {
-                console.error("Error decoding or parsing data:", error);
-                return null;
-            }
-        }
+      function decodeAndParse(encodedData) {
+          try {
+              encodedData = encodedData.replace(/-/g, '+').replace(/_/g, '/');
+              while (encodedData.length % 4) {
+                  encodedData += '=';
+              }
+              return JSON.parse(atob(encodedData));
+          } catch (error) {
+              return null;
+          }
+      }
 
-        function createImageBoxes(imageDataDict) {
-            const container = document.getElementById('image-container');
-            for (const key in imageDataDict) {
-                const data = imageDataDict[key];
-                const box = document.createElement('div');
-                box.className = 'image-box';
+      function createImageBoxes(imageDataDict) {
+          const container = document.getElementById('image-container');
+          for (const key in imageDataDict) {
+              const data = imageDataDict[key];
+              const box = document.createElement('div');
+              box.className = 'image-box';
 
-                const wrapper = document.createElement('div');
-                wrapper.className = 'image-wrapper';
+              const wrapper = document.createElement('div');
+              wrapper.className = 'image-wrapper';
 
-                const img = document.createElement('img');
-                img.src = data.originalimage;
-                wrapper.appendChild(img);
-                box.appendChild(wrapper);
+              const img = document.createElement('img');
+              img.src = data.originalimage;
+              wrapper.appendChild(img);
+              box.appendChild(wrapper);
 
-                const title = document.createElement('h2');
-                title.textContent = data.title;
-                box.appendChild(title);
+              const title = document.createElement('h2');
+              title.textContent = data.title;
+              box.appendChild(title);
 
-                const author = document.createElement('p');
-                author.innerHTML = `<strong>Author:</strong> ${data.author}`;
-                box.appendChild(author);
+              const author = document.createElement('p');
+              author.innerHTML = `<strong>Author:</strong> ${data.author}`;
+              box.appendChild(author);
 
-                const similarity = document.createElement('p');
-                similarity.innerHTML = `<strong>Similarity:</strong> ${data.similarity}%`;
-                box.appendChild(similarity);
+              const similarity = document.createElement('p');
+              similarity.innerHTML = `<strong>Similarity:</strong> ${data.similarity}%`;
+              box.appendChild(similarity);
 
-                const btnContainer = document.createElement('div');
-                btnContainer.className = 'btn-container';
+              const btnContainer = document.createElement('div');
+              btnContainer.className = 'btn-container';
 
-                if (data.authorprofile) {
-                    const authorBtn = document.createElement('a');
-                    authorBtn.href = data.authorprofile;
-                    authorBtn.textContent = 'Author Profile';
-                    authorBtn.className = 'btn';
-                    btnContainer.appendChild(authorBtn);
-                }
+              if (data.authorprofile) {
+                  const authorBtn = document.createElement('a');
+                  authorBtn.href = data.authorprofile;
+                  authorBtn.textContent = 'Author Profile';
+                  authorBtn.className = 'btn';
+                  btnContainer.appendChild(authorBtn);
+              }
 
-                if (data.sourceurl) {
-                    const sourceBtn = document.createElement('a');
-                    sourceBtn.href = data.sourceurl;
-                    sourceBtn.textContent = 'Source URL';
-                    sourceBtn.className = 'btn source-link'; // Added class for reference
-                    btnContainer.appendChild(sourceBtn);
-                }
+              if (data.sourceurl) {
+                  const sourceBtn = document.createElement('a');
+                  sourceBtn.href = data.sourceurl;
+                  sourceBtn.textContent = 'Source URL';
+                  sourceBtn.className = 'btn source-link';
+                  btnContainer.appendChild(sourceBtn);
+              }
 
-                box.appendChild(btnContainer);
-                container.appendChild(box);
-            }
-            setupImageModal(); // Setup modal after creating image boxes
-        }
+              box.appendChild(btnContainer);
+              container.appendChild(box);
+          }
+          setupImageModal();
+      }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const encodedData = urlParams.get('c');
+      const urlParams = new URLSearchParams(window.location.search);
+      const encodedData = urlParams.get('c');
 
-        if (encodedData) {
-            const imageDataDict = decodeAndParse(encodedData);
-            if (imageDataDict) {
-                createImageBoxes(imageDataDict);
-            } else {
-                document.getElementById('image-container').innerHTML = '<p>Error decoding data.</p>';
-            }
-        } else {
-            document.getElementById('image-container').innerHTML = '<p>No data found.</p>';
-        }
-    </script>
+      if (encodedData) {
+          const imageDataDict = decodeAndParse(encodedData);
+          imageDataDict ? createImageBoxes(imageDataDict) : document.getElementById('image-container').innerHTML = '<p>Error decoding data.</p>';
+      } else {
+          document.getElementById('image-container').innerHTML = '<p>No data found.</p>';
+      }
+  </script>
 </body>
 </html>
